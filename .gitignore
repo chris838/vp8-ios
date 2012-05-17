@@ -1,0 +1,11 @@
+# XCode files we don't want to track #
+
+*.xcuserstate
+project.xcworkspace/
+xcuserdata/
+
+# Emacs temp files #
+*~
+
+# Build dir #
+build
