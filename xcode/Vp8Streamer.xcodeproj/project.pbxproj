@@ -1,0 +1,305 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3031E6CE1565307D002F015E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E6CD1565307D002F015E /* UIKit.framework */; };
+		3031E6D01565307D002F015E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E6CF1565307D002F015E /* Foundation.framework */; };
+		3031E6D21565307D002F015E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E6D11565307D002F015E /* CoreGraphics.framework */; };
+		3031E6D81565307D002F015E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3031E6D61565307D002F015E /* InfoPlist.strings */; };
+		3031E6DA1565307D002F015E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3031E6D91565307D002F015E /* main.m */; };
+		3031E6DE1565307D002F015E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3031E6DD1565307D002F015E /* AppDelegate.m */; };
+		3031E6E11565307D002F015E /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3031E6E01565307D002F015E /* ViewController.mm */; };
+		3031E6E41565307D002F015E /* ViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3031E6E21565307D002F015E /* ViewController_iPhone.xib */; };
+		3031E6E71565307D002F015E /* ViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3031E6E51565307D002F015E /* ViewController_iPad.xib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		3031E6C91565307D002F015E /* Vp8Streamer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vp8Streamer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3031E6CD1565307D002F015E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		3031E6CF1565307D002F015E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		3031E6D11565307D002F015E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		3031E6D51565307D002F015E /* Vp8Streamer-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Vp8Streamer-Info.plist"; sourceTree = "<group>"; };
+		3031E6D71565307D002F015E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		3031E6D91565307D002F015E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		3031E6DB1565307D002F015E /* Vp8Streamer-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Vp8Streamer-Prefix.pch"; sourceTree = "<group>"; };
+		3031E6DC1565307D002F015E /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		3031E6DD1565307D002F015E /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		3031E6DF1565307D002F015E /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		3031E6E01565307D002F015E /* ViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewController.mm; sourceTree = "<group>"; };
+		3031E6E31565307D002F015E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPhone.xib; sourceTree = "<group>"; };
+		3031E6E61565307D002F015E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPad.xib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3031E6C61565307D002F015E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3031E6CE1565307D002F015E /* UIKit.framework in Frameworks */,
+				3031E6D01565307D002F015E /* Foundation.framework in Frameworks */,
+				3031E6D21565307D002F015E /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3031E6BE1565307D002F015E = {
+			isa = PBXGroup;
+			children = (
+				3031E6D31565307D002F015E /* Vp8Streamer */,
+				3031E6CC1565307D002F015E /* Frameworks */,
+				3031E6CA1565307D002F015E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3031E6CA1565307D002F015E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3031E6C91565307D002F015E /* Vp8Streamer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3031E6CC1565307D002F015E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3031E6CD1565307D002F015E /* UIKit.framework */,
+				3031E6CF1565307D002F015E /* Foundation.framework */,
+				3031E6D11565307D002F015E /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3031E6D31565307D002F015E /* Vp8Streamer */ = {
+			isa = PBXGroup;
+			children = (
+				3031E6DC1565307D002F015E /* AppDelegate.h */,
+				3031E6DD1565307D002F015E /* AppDelegate.m */,
+				3031E6DF1565307D002F015E /* ViewController.h */,
+				3031E6E01565307D002F015E /* ViewController.mm */,
+				3031E6E21565307D002F015E /* ViewController_iPhone.xib */,
+				3031E6E51565307D002F015E /* ViewController_iPad.xib */,
+				3031E6D41565307D002F015E /* Supporting Files */,
+			);
+			path = Vp8Streamer;
+			sourceTree = "<group>";
+		};
+		3031E6D41565307D002F015E /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				3031E6D51565307D002F015E /* Vp8Streamer-Info.plist */,
+				3031E6D61565307D002F015E /* InfoPlist.strings */,
+				3031E6D91565307D002F015E /* main.m */,
+				3031E6DB1565307D002F015E /* Vp8Streamer-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3031E6C81565307D002F015E /* Vp8Streamer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3031E6EA1565307D002F015E /* Build configuration list for PBXNativeTarget "Vp8Streamer" */;
+			buildPhases = (
+				3031E6C51565307D002F015E /* Sources */,
+				3031E6C61565307D002F015E /* Frameworks */,
+				3031E6C71565307D002F015E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Vp8Streamer;
+			productName = Vp8Streamer;
+			productReference = 3031E6C91565307D002F015E /* Vp8Streamer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3031E6C01565307D002F015E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0430;
+				ORGANIZATIONNAME = "Swift Navigation";
+			};
+			buildConfigurationList = 3031E6C31565307D002F015E /* Build configuration list for PBXProject "Vp8Streamer" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 3031E6BE1565307D002F015E;
+			productRefGroup = 3031E6CA1565307D002F015E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3031E6C81565307D002F015E /* Vp8Streamer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3031E6C71565307D002F015E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3031E6D81565307D002F015E /* InfoPlist.strings in Resources */,
+				3031E6E41565307D002F015E /* ViewController_iPhone.xib in Resources */,
+				3031E6E71565307D002F015E /* ViewController_iPad.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3031E6C51565307D002F015E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3031E6DA1565307D002F015E /* main.m in Sources */,
+				3031E6DE1565307D002F015E /* AppDelegate.m in Sources */,
+				3031E6E11565307D002F015E /* ViewController.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		3031E6D61565307D002F015E /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3031E6D71565307D002F015E /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3031E6E21565307D002F015E /* ViewController_iPhone.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3031E6E31565307D002F015E /* en */,
+			);
+			name = ViewController_iPhone.xib;
+			sourceTree = "<group>";
+		};
+		3031E6E51565307D002F015E /* ViewController_iPad.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3031E6E61565307D002F015E /* en */,
+			);
+			name = ViewController_iPad.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		3031E6E81565307D002F015E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3031E6E91565307D002F015E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		3031E6EB1565307D002F015E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Vp8Streamer/Vp8Streamer-Prefix.pch";
+				HEADER_SEARCH_PATHS = ../include;
+				INFOPLIST_FILE = "Vp8Streamer/Vp8Streamer-Info.plist";
+				LIBRARY_SEARCH_PATHS = ../lib;
+				OTHER_LDFLAGS = "-lvpx";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		3031E6EC1565307D002F015E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Vp8Streamer/Vp8Streamer-Prefix.pch";
+				HEADER_SEARCH_PATHS = ../include;
+				INFOPLIST_FILE = "Vp8Streamer/Vp8Streamer-Info.plist";
+				LIBRARY_SEARCH_PATHS = ../lib;
+				OTHER_LDFLAGS = "-lvpx";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3031E6C31565307D002F015E /* Build configuration list for PBXProject "Vp8Streamer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3031E6E81565307D002F015E /* Debug */,
+				3031E6E91565307D002F015E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3031E6EA1565307D002F015E /* Build configuration list for PBXNativeTarget "Vp8Streamer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3031E6EB1565307D002F015E /* Debug */,
+				3031E6EC1565307D002F015E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3031E6C01565307D002F015E /* Project object */;
+}
