@@ -7,240 +7,198 @@
 //
 
 #import "ViewController.h"
+#import <AVFoundation/AVFoundation.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#define VPX_CODEC_DISABLE_COMPAT 1
-#include "vpx_encoder.h"
-#include "vp8cx.h"
-#define vpx_interface (vpx_codec_vp8_cx())
-#define fourcc    0x30385056
+#import "simple_encoder.c"
 
-#define IVF_FILE_HDR_SZ  (32)
-#define IVF_FRAME_HDR_SZ (12)
+#define CAPTURE_FRAMES_PER_SECOND   15
+#define CAPTURE_QUALITY_PRESET AVCaptureSessionPresetiFrame960x540
 
+// Don't know why this is needed, probably some frame header
+#define UNKNOWN_IMG_OFFSET 64
 
-@interface ViewController ()
-
-@end
 
 @implementation ViewController
 
-static void mem_put_le16(char *mem, unsigned int val) {
-    mem[0] = val;
-    mem[1] = val>>8;
-}
+static vpx_image_t raw;
 
-static void mem_put_le32(char *mem, unsigned int val) {
-    mem[0] = val;
-    mem[1] = val>>8;
-    mem[2] = val>>16;
-    mem[3] = val>>24;
-}
-
-static void die(const char *fmt, ...) {
-    va_list ap;
-    
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    if(fmt[strlen(fmt)-1] != '\n')
-        printf("\n");
-    exit(EXIT_FAILURE);
-}
-
-static void die_codec(vpx_codec_ctx_t *ctx, const char *s) {                  //
-    const char *detail = vpx_codec_error_detail(ctx);                         //
-    //
-    printf("%s: %s\n", s, vpx_codec_error(ctx));                              //
-    if(detail)                                                                //
-        printf("    %s\n",detail);                                            //
-    exit(EXIT_FAILURE);                                                       //
-}                                                                             //
-
-static int read_frame(FILE *f, vpx_image_t *img) {
-    size_t nbytes, to_read;
-    int    res = 1;
-    
-    to_read = img->w*img->h*3/2;
-    nbytes = fread(img->planes[0], 1, to_read, f);
-    if(nbytes != to_read) {
-        res = 0;
-        if(nbytes > 0)
-            printf("Warning: Read partial frame. Check your width & height!\n");
-    }
-    return res;
-}
-
-static void write_ivf_file_header(FILE *outfile,
-                                  const vpx_codec_enc_cfg_t *cfg,
-                                  int frame_cnt) {
-    char header[32];
-    
-    if(cfg->g_pass != VPX_RC_ONE_PASS && cfg->g_pass != VPX_RC_LAST_PASS)
-        return;
-    header[0] = 'D';
-    header[1] = 'K';
-    header[2] = 'I';
-    header[3] = 'F';
-    mem_put_le16(header+4,  0);                   /* version */
-    mem_put_le16(header+6,  32);                  /* headersize */
-    mem_put_le32(header+8,  fourcc);              /* headersize */
-    mem_put_le16(header+12, cfg->g_w);            /* width */
-    mem_put_le16(header+14, cfg->g_h);            /* height */
-    mem_put_le32(header+16, cfg->g_timebase.den); /* rate */
-    mem_put_le32(header+20, cfg->g_timebase.num); /* scale */
-    mem_put_le32(header+24, frame_cnt);           /* length */
-    mem_put_le32(header+28, 0);                   /* unused */
-    
-    if(fwrite(header, 1, 32, outfile));
-}
-
-
-static void write_ivf_frame_header(FILE *outfile,
-                                   const vpx_codec_cx_pkt_t *pkt)
+- (void) viewDidLoad
 {
-    char             header[12];
-    vpx_codec_pts_t  pts;
     
-    if(pkt->kind != VPX_CODEC_CX_FRAME_PKT)
-        return;
+    // Setup the capture session
+    [self setupCapture];
     
-    pts = pkt->data.frame.pts;
-    mem_put_le32(header, pkt->data.frame.sz);
-    mem_put_le32(header+4, pts&0xFFFFFFFF);
-    mem_put_le32(header+8, pts >> 32);
+    // Encoder will be setup when first frame gets there
+    hasSetupEncoder = NO;
     
-    if(fwrite(header, 1, 12, outfile));
+    //Begin capture
+	[captureSession startRunning];
 }
 
-int encode_main(int argc, char **argv) {
-    FILE                *infile, *outfile;
-    vpx_codec_ctx_t      codec;
-    vpx_codec_enc_cfg_t  cfg;
-    int                  frame_cnt = 0;
-    vpx_image_t          raw;
-    vpx_codec_err_t      res;
-    long                 width;
-    long                 height;
-    int                  frame_avail;
-    int                  got_data;
-    int                  flags = 0;
-    
-    /* Open files */
-    if(argc!=5)
-        die("Usage: %s <width> <height> <infile> <outfile>\n", argv[0]);
-    width = strtol(argv[1], NULL, 0);
-    height = strtol(argv[2], NULL, 0);
-    if(width < 16 || width%2 || height <16 || height%2)
-        die("Invalid resolution: %ldx%ld", width, height);
-    if(!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1))
-        die("Faile to allocate image", width, height);
-    if(!(outfile = fopen(argv[4], "wb")))
-        die("Failed to open %s for writing", argv[4]);
-    
-    printf("Using %s\n",vpx_codec_iface_name(vpx_interface));
-    
-    /* Populate encoder configuration */                                      //
-    res = vpx_codec_enc_config_default(vpx_interface, &cfg, 0);                   //
-    if(res) {                                                                 //
-        printf("Failed to get config: %s\n", vpx_codec_err_to_string(res));   //
-        return EXIT_FAILURE;                                                  //
-    }                                                                         //
-    
-    /* Update the default configuration with our settings */                  //
-    cfg.rc_target_bitrate = width * height * cfg.rc_target_bitrate            //
-    / cfg.g_w / cfg.g_h;                              //
-    cfg.g_w = width;                                                          //
-    cfg.g_h = height;                                                         //
-    
-    write_ivf_file_header(outfile, &cfg, 0);
-    
-    
-    /* Open input file for this encoding pass */
-    if(!(infile = fopen(argv[3], "rb")))
-        die("Failed to open %s for reading", argv[3]);
-    
-    /* Initialize codec */                                                //
-    if(vpx_codec_enc_init(&codec, vpx_interface, &cfg, 0))                    //
-        die_codec(&codec, "Failed to initialize encoder");                //
-    
-    frame_avail = 1;
-    got_data = 0;
-    while(frame_avail || got_data) {
-        vpx_codec_iter_t iter = NULL;
-        const vpx_codec_cx_pkt_t *pkt;
-        
-        frame_avail = read_frame(infile, &raw);                           //
-        if(vpx_codec_encode(&codec, frame_avail? &raw : NULL, frame_cnt,  //
-                            1, flags, VPX_DL_REALTIME))                   //
-            die_codec(&codec, "Failed to encode frame");                  //
-        got_data = 0;
-        while( (pkt = vpx_codec_get_cx_data(&codec, &iter)) ) {
-            got_data = 1;
-            switch(pkt->kind) {
-                case VPX_CODEC_CX_FRAME_PKT:                                  //
-                    write_ivf_frame_header(outfile, pkt);                     //
-                    if(fwrite(pkt->data.frame.buf, 1, pkt->data.frame.sz,     //
-                              outfile));                                      //
-                    break;                                                    //
-                default:
-                    break;
-            }
-            printf(pkt->kind == VPX_CODEC_CX_FRAME_PKT
-                   && (pkt->data.frame.flags & VPX_FRAME_IS_KEY)? "K":".");
-            fflush(stdout);
-        }
-        frame_cnt++;
-    }
-    printf("\n");
-    fclose(infile);
-    
-    printf("Processed %d frames.\n",frame_cnt-1);
-    if(vpx_codec_destroy(&codec))                                             //
-        die_codec(&codec, "Failed to destroy codec");                         //
-    
-    /* Try to rewrite the file header with the actual frame count */
-    if(!fseek(outfile, 0, SEEK_SET))
-        write_ivf_file_header(outfile, &cfg, frame_cnt-1);
-    fclose(outfile);
-    return EXIT_SUCCESS;
-}
+#pragma mark -
+#pragma mark AV capture and transmission
 
-
-- (void)viewDidLoad
+// Helper function to return a front facing camera, if one is available
+- (AVCaptureDevice *)frontFacingCameraIfAvailable
 {
-    [super viewDidLoad];
+    AVCaptureDevice *captureDevice = nil;
     
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES); //creates paths so that you can pull the app's path from it
-    NSString *documentsDirectory = [paths objectAtIndex:0]; //gets the applications directory on the users iPhone
+    // Just get the default video device.
+    if ( !captureDevice )
+    {
+        NSLog(@"Couldn't find front facing camera");
+        captureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    }
+    
+    if (! captureDevice) NSLog( @"Error - couldn't create video capture device" );
+    
+    return captureDevice;
+}
 
-    NSString *inFileName = @"in"; //sets the name of the file name to be in
-    NSString *outFileName = @"out"; //sets the name of the file name to be out
+// Helper function to setup the capture connection properties (framerate and flipping)
+- (void) setCaptureFramerate: (AVCaptureConnection*) conn
+{
+    NSLog( @"Setting framerate - about to show min/max duration before and after setting...");
+    // Set the framerate
+    CMTimeShow(conn.videoMinFrameDuration); // Output initial framerate
+    CMTimeShow(conn.videoMaxFrameDuration); //
     
-    char *inFile = (char*) [[documentsDirectory stringByAppendingFormat:@"/%@", inFileName] UTF8String];
-    char *outFile = (char*) [[documentsDirectory stringByAppendingFormat:@"/%@", outFileName] UTF8String];
+    if (conn.supportsVideoMinFrameDuration)
+        conn.videoMinFrameDuration = CMTimeMake(1, CAPTURE_FRAMES_PER_SECOND);
+    if (conn.supportsVideoMaxFrameDuration)
+        conn.videoMaxFrameDuration = CMTimeMake(1, CAPTURE_FRAMES_PER_SECOND);
+    
+    CMTimeShow(conn.videoMinFrameDuration); // Check new framerate has been applied here
+    CMTimeShow(conn.videoMaxFrameDuration); //
+    NSLog( @"...framerate set");
+}
+
+// Begin capturing video through a camera
+- (void)setupCapture
+{
+	// Setup AV input
+    AVCaptureDevice* front = [self frontFacingCameraIfAvailable];
+    NSError *error;
+	AVCaptureDeviceInput *captureInput = [AVCaptureDeviceInput deviceInputWithDevice:front error:&error];
+    if (error) NSLog( @"Error - couldn't create video input" );
 	
-    char* argv[] = { "", inFile, "320", "240", outFile};
-    encode_main(5, argv);
+    // Setup AV output
+	AVCaptureVideoDataOutput *captureOutput = [[AVCaptureVideoDataOutput alloc] init];
+	captureOutput.alwaysDiscardsLateVideoFrames = YES; 
     
+	// Create a serial queue to handle the processing of frames
+	queue = dispatch_queue_create("cameraQueue", NULL);
+	[captureOutput setSampleBufferDelegate:self queue:queue];
+    
+	// Set the video output to store frame in
+	NSString* key = (NSString*)kCVPixelBufferPixelFormatTypeKey; 
+	NSNumber* value = [NSNumber numberWithUnsignedInt:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange]; 
+	NSDictionary* videoSettings = [NSDictionary dictionaryWithObject:value forKey:key]; 
+	[captureOutput setVideoSettings:videoSettings];
+    
+    // Create a capture session, add inputs/outputs and set camera quality
+	captureSession = [[AVCaptureSession alloc] init];
+    if ([captureSession canAddInput:captureInput])
+        [captureSession addInput:captureInput];
+    else NSLog(@"Error - couldn't add video input");
+    if ([captureSession canAddOutput:captureOutput])
+        [captureSession addOutput:captureOutput];
+    else NSLog(@"Error - couldn't add video output");
+    if ([captureSession canSetSessionPreset:CAPTURE_QUALITY_PRESET])
+        [captureSession setSessionPreset:CAPTURE_QUALITY_PRESET];
+    
+    // Set the framerate through the capture connection
+    AVCaptureConnection *videoConnection = [captureOutput connectionWithMediaType:AVMediaTypeVideo];
+    [self setCaptureFramerate:videoConnection];
     
 }
 
-- (void)viewDidUnload
+#pragma mark -
+#pragma mark Encoder setup
+
+- (void) setupEncoder: (CMSampleBufferRef) sampleBuffer
 {
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
+    NSLog(@"Setting up encoder");
+    
+    CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    
+    int height = CVPixelBufferGetHeight(pixelBuffer);
+    int width = CVPixelBufferGetWidth(pixelBuffer);
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory , NSUserDomainMask, YES);
+    NSString *pathToDst = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"sample.ivf"];
+    
+    NSString* pathToSrc = [[NSBundle mainBundle] pathForResource:@"sample" ofType:@"yuv420p"];
+    
+    const char* pathToSrcString = [pathToSrc cStringUsingEncoding:NSASCIIStringEncoding];
+    const char* pathToDstString = [pathToDst cStringUsingEncoding:NSASCIIStringEncoding];
+    
+    main1(width, height, pathToSrcString, pathToDstString);
+    
+    if(!vpx_img_alloc(&raw, VPX_IMG_FMT_YV12, width, height, 1))
+        die("Failed to allocate image", width, height);
+    
+    count = 0;
+    
+    hasSetupEncoder = YES;
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
-    } else {
-        return YES;
+
+#pragma mark -
+#pragma mark AVCaptureSession delegate
+
+- (void)captureOutput:(AVCaptureOutput *)captureOutput 
+didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer 
+	   fromConnection:(AVCaptureConnection *)connection 
+{ 
+    if (!hasSetupEncoder) [self setupEncoder:sampleBuffer];
+    
+    NSLog(@"Got frame");
+    count++;
+    
+    if (count < 200) {
+    
+        vpx_image_t * img = &raw;
+        size_t num_luma_pixels = img->w * img->h;
+        size_t num_chroma_pixels = (img->w * img->h) / 4;
+    
+        // Get access to raw pixel data
+        CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer); 
+        CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+        unsigned char* base_address = (unsigned char*) CVPixelBufferGetBaseAddress(pixelBuffer) + UNKNOWN_IMG_OFFSET;
+        
+        // Alias to planes in source image
+        unsigned char* y_plane_src = base_address;
+        unsigned char* uv_planes = base_address + num_luma_pixels + 5*img->w;
+        
+        // Alias to planes in destination image
+        unsigned char* y_plane_dst = img->planes[0];
+        unsigned char* u_plane = y_plane_dst + num_luma_pixels;
+        unsigned char* v_plane = u_plane + num_chroma_pixels;
+        
+        // Copy in the Y values
+        memcpy(y_plane_dst, y_plane_src, num_luma_pixels);
+        
+        // Seperate out the V and U components
+        for (unsigned int i = 0; i < num_chroma_pixels; i++) {
+            v_plane[i] = uv_planes[2*i];
+            u_plane[i] = uv_planes[2*i + 1];
+        }
+        
+        // Run through encoder
+        main2(img);
+        
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+        
     }
-}
+    else {
+        [captureSession stopRunning];
+        main3();
+    }
+    
+    
+    
+} 
+
 
 @end
