@@ -111,10 +111,9 @@ static void write_ivf_file_header(FILE *outfile,
 }
 
 
-static void write_ivf_frame_header(FILE *outfile,
-                                   const vpx_codec_cx_pkt_t *pkt)
+static void write_ivf_frame_header(const vpx_codec_cx_pkt_t *pkt, char* header)
 {
-    char             header[12];
+    //char             header[12];
     vpx_codec_pts_t  pts;
     
     if(pkt->kind != VPX_CODEC_CX_FRAME_PKT)
@@ -125,11 +124,10 @@ static void write_ivf_frame_header(FILE *outfile,
     mem_put_le32(header+4, pts&0xFFFFFFFF);
     mem_put_le32(header+8, pts >> 32);
     
-    if(fwrite(header, 1, 12, outfile));
+    //if(fwrite(header, 1, 12, outfile));
 }
 
 
-static FILE                *infile, *outfile;
 static vpx_codec_ctx_t      codec;
 static vpx_codec_enc_cfg_t  cfg;
 static int                  frame_cnt = 0;
@@ -138,15 +136,12 @@ static int                  frame_avail;
 static int                  got_data;
 static int                  flags = 0;
 
-int main1(long width, long height, const char* infile_path, const char* outfile_path)
+int setup_encoder(long width, long height)
 {
     
     // Create image using dimensions
     if(width < 16 || width%2 || height <16 || height%2)
         die("Invalid resolution: %ldx%ld", width, height);
-    
-    if(!(outfile = fopen(outfile_path, "wb")))
-        die("Failed to open %s for writing", outfile_path);
     
     printf("Using %s\n",vpx_codec_iface_name(vpx_interface));
     
@@ -163,13 +158,6 @@ int main1(long width, long height, const char* infile_path, const char* outfile_
     cfg.g_w = width;                                                          //
     cfg.g_h = height;                                                         //
     
-    write_ivf_file_header(outfile, &cfg, 0);
-    
-    
-    /* Open input file for this encoding pass */
-    //if(!(infile = fopen(infile_path, "rb")))
-    //    die("Failed to open %s for reading", infile_path);
-    
     /* Initialize codec */                                                //
     if(vpx_codec_enc_init(&codec, vpx_interface, &cfg, 0))                    //
         die_codec(&codec, "Failed to initialize encoder");                //
@@ -180,54 +168,50 @@ int main1(long width, long height, const char* infile_path, const char* outfile_
     return EXIT_SUCCESS;
 }
  
-int main2(vpx_image_t *raw)
+const vpx_codec_cx_pkt_t * encode_frame(vpx_image_t *raw)
 {
-    //while(frame_avail || got_data) {
+    vpx_codec_iter_t iter = NULL;
+    const vpx_codec_cx_pkt_t *pkt;
     
-        vpx_codec_iter_t iter = NULL;
-        const vpx_codec_cx_pkt_t *pkt;
-        
-        frame_avail = 1;
+    frame_avail = 1;
 
-        if(vpx_codec_encode(&codec, frame_avail? raw : NULL, frame_cnt,  //
-                            1, flags, VPX_DL_REALTIME))                   //
-            die_codec(&codec, "Failed to encode frame");                  //
-        got_data = 0;
-        while( (pkt = vpx_codec_get_cx_data(&codec, &iter)) ) {
-            got_data = 1;
-            switch(pkt->kind) {
-                case VPX_CODEC_CX_FRAME_PKT:                                  //
-                    write_ivf_frame_header(outfile, pkt);                     //
-                    if(fwrite(pkt->data.frame.buf, 1, pkt->data.frame.sz,     //
-                              outfile));                                      //
-                    break;                                                    //
-                default:
-                    break;
-            }
-            printf(pkt->kind == VPX_CODEC_CX_FRAME_PKT
-                   && (pkt->data.frame.flags & VPX_FRAME_IS_KEY)? "K":".");
-            fflush(stdout);
-        }
-        frame_cnt++;
+    if(vpx_codec_encode(&codec, frame_avail? raw : NULL, frame_cnt, 1, flags, VPX_DL_REALTIME))
+        die_codec(&codec, "Failed to encode frame");
+    got_data = 0;
+
+    // Sometimes there might be more than one packet, so if you get errors this is why
+    pkt = vpx_codec_get_cx_data(&codec, &iter);
+        
+    got_data = 1;
+    switch(pkt->kind) {
+        case VPX_CODEC_CX_FRAME_PKT:                                
+            
+            // Write header and frame to file
+            //write_ivf_frame_header(outfile, pkt);                   
+            //fwrite(pkt->data.frame.buf, 1, pkt->data.frame.sz, outfile); 
+            
+            break;
+            
+        default:
+            printf("WARNING - Got a different kind of packet, don't know how to handle");
+            break;
+    }
     
-    //}
-    
-    return EXIT_SUCCESS;
+    printf(pkt->kind == VPX_CODEC_CX_FRAME_PKT
+           && (pkt->data.frame.flags & VPX_FRAME_IS_KEY)? "K":".");
+    fflush(stdout);
+
+    frame_cnt++;
+
+    return pkt;
 }
 
-int main3()
+int finalise_encoder()
 {
-    
-    printf("\n");
-    fclose(infile);
     
     printf("Processed %d frames.\n",frame_cnt-1);
     if(vpx_codec_destroy(&codec))                                             //
         die_codec(&codec, "Failed to destroy codec");                         //
     
-    /* Try to rewrite the file header with the actual frame count */
-    if(!fseek(outfile, 0, SEEK_SET))
-        write_ivf_file_header(outfile, &cfg, frame_cnt-1);
-    fclose(outfile);
     return EXIT_SUCCESS;
 }

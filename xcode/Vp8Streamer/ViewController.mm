@@ -10,6 +10,7 @@
 #import <AVFoundation/AVFoundation.h>
 
 #import "simple_encoder.c"
+#import "simple_decoder.c"
 
 #define CAPTURE_FRAMES_PER_SECOND   15
 #define CAPTURE_QUALITY_PRESET AVCaptureSessionPresetiFrame960x540
@@ -22,6 +23,14 @@
 
 static vpx_image_t raw;
 
+- (void) loadView
+{
+    self.wantsFullScreenLayout = YES;
+    self.view = [[UIImageView alloc]
+                 initWithFrame:[UIScreen mainScreen].applicationFrame];
+    [self.view setBackgroundColor:[UIColor yellowColor]];
+}
+
 - (void) viewDidLoad
 {
     
@@ -31,9 +40,90 @@ static vpx_image_t raw;
     // Encoder will be setup when first frame gets there
     hasSetupEncoder = NO;
     
+    // Setup decoder
+    [self setupDecoder];
+    
     //Begin capture
 	[captureSession startRunning];
+    
+    /*
+    [self setupDecoder];
+    
+    int width = 960;
+    int height = 540;
+    
+    if(!vpx_img_alloc(&raw, VPX_IMG_FMT_YV12, width, height, 1))
+        die("Failed to allocate image", width, height);
+    vpx_image_t * img = &raw;
+    
+    for (int i=0; i<1; i++) {
+        
+        unsigned char* luma = (unsigned char*) malloc(width*height*3);
+        decode_frame(img, (char*)luma);
+        
+        //char* luma = (char*) malloc(width*height*4);
+        
+        //memset(luma, 0xFF, width * height * 4);
+        
+        NSLog(@"got frame");
+        
+        // make data provider from buffer
+        CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, luma, (width * height), NULL);
+        
+        // set up for CGImage creation
+        int bitsPerComponent = 8;
+        int bitsPerPixel = 8;
+        int bytesPerRow = width;
+        CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceGray();
+        CGBitmapInfo bitmapInfo = kCGBitmapByteOrderDefault | kCGImageAlphaNone;
+        CGColorRenderingIntent renderingIntent = kCGRenderingIntentDefault;
+        CGImageRef imageRef = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpaceRef, bitmapInfo, provider, NULL, NO, renderingIntent);
+        
+        // make UIImage from CGImage
+        UIImage *newUIImage = [UIImage imageWithCGImage:imageRef];
+        
+        // display the UIImage
+        [((UIImageView*)self.view) performSelectorOnMainThread:@selector(setImage:) withObject:newUIImage waitUntilDone:YES];
+        
+    }
+    */
+    
+    //finalise_decoder();
+    
 }
+
+- (Boolean) createPixelBuffer: (CVPixelBufferRef*) pixelBuffer_ptr
+{
+    // Define the output pixel buffer attibutes
+    CFDictionaryRef emptyValue = CFDictionaryCreate(kCFAllocatorDefault, // our empty IOSurface properties dictionary
+                                                    NULL,
+                                                    NULL,
+                                                    0,
+                                                    &kCFTypeDictionaryKeyCallBacks,
+                                                    &kCFTypeDictionaryValueCallBacks);
+    CFMutableDictionaryRef pixelBufferAttributes = CFDictionaryCreateMutable(kCFAllocatorDefault,
+                                                                             1,
+                                                                             &kCFTypeDictionaryKeyCallBacks,
+                                                                             &kCFTypeDictionaryValueCallBacks);
+    CFDictionarySetValue(pixelBufferAttributes, kCVPixelBufferIOSurfacePropertiesKey, emptyValue);
+    
+    // Create the pixel buffer
+    CVReturn err = CVPixelBufferCreate(kCFAllocatorDefault, 960, 540,
+                                       kCVPixelFormatType_32BGRA,
+                                       pixelBufferAttributes,
+                                       pixelBuffer_ptr);
+    CFRelease(emptyValue);
+    CFRelease(pixelBufferAttributes);
+    
+    // Check for success
+    if (err) {
+        NSLog(@"Error creating output pixel buffer with CVReturn error %u", err);
+        return false;
+    }
+    
+    return true;
+}
+
 
 #pragma mark -
 #pragma mark AV capture and transmission
@@ -114,26 +204,17 @@ static vpx_image_t raw;
 }
 
 #pragma mark -
-#pragma mark Encoder setup
+#pragma mark Encoder/decoder setup
 
 - (void) setupEncoder: (CMSampleBufferRef) sampleBuffer
 {
     NSLog(@"Setting up encoder");
     
     CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-    
     int height = CVPixelBufferGetHeight(pixelBuffer);
     int width = CVPixelBufferGetWidth(pixelBuffer);
-    
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory , NSUserDomainMask, YES);
-    NSString *pathToDst = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"sample.ivf"];
-    
-    NSString* pathToSrc = [[NSBundle mainBundle] pathForResource:@"sample" ofType:@"yuv420p"];
-    
-    const char* pathToSrcString = [pathToSrc cStringUsingEncoding:NSASCIIStringEncoding];
-    const char* pathToDstString = [pathToDst cStringUsingEncoding:NSASCIIStringEncoding];
-    
-    main1(width, height, pathToSrcString, pathToDstString);
+        
+    setup_encoder(width, height);
     
     if(!vpx_img_alloc(&raw, VPX_IMG_FMT_YV12, width, height, 1))
         die("Failed to allocate image", width, height);
@@ -143,13 +224,41 @@ static vpx_image_t raw;
     hasSetupEncoder = YES;
 }
 
+- (void) setupDecoder
+{
+    NSLog(@"Setting up decoder");
+
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory , NSUserDomainMask, YES);
+    NSString *pathToSrc = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"sample.ivf"];
+    const char* pathToSrcString = [pathToSrc cStringUsingEncoding:NSASCIIStringEncoding];
+    
+    luma = (unsigned char*) malloc(960*540*3);
+    
+    setup_decoder( (char*) pathToSrcString );
+    
+}
+
 
 #pragma mark -
 #pragma mark AVCaptureSession delegate
 
-- (void)captureOutput:(AVCaptureOutput *)captureOutput 
-didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer 
-	   fromConnection:(AVCaptureConnection *)connection 
+- (UIImage *)imageWithColor:(UIColor *)color {
+    CGRect rect = CGRectMake(0.0f, 0.0f, 1.0f, 1.0f);
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return image;
+}
+
+- (void)captureOutput: (AVCaptureOutput *)captureOutput 
+didOutputSampleBuffer: (CMSampleBufferRef)sampleBuffer 
+	   fromConnection: (AVCaptureConnection *)connection 
 { 
     if (!hasSetupEncoder) [self setupEncoder:sampleBuffer];
     
@@ -169,7 +278,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         
         // Alias to planes in source image
         unsigned char* y_plane_src = base_address;
-        unsigned char* uv_planes = base_address + num_luma_pixels + 5*img->w;
+        unsigned char* uv_planes = base_address + num_luma_pixels + 5*img->w; // Not sure why I have to do this but it works
         
         // Alias to planes in destination image
         unsigned char* y_plane_dst = img->planes[0];
@@ -186,19 +295,57 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         }
         
         // Run through encoder
-        main2(img);
+        const vpx_codec_cx_pkt_t * pkt = encode_frame(img);
         
         CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+        
+        // Now we decode and display the frame
+        [self decodeAndDisplayFrame:pkt];
         
     }
     else {
         [captureSession stopRunning];
-        main3();
+        finalise_encoder();
     }
     
+}
+
+- (void) decodeAndDisplayFrame: (const vpx_codec_cx_pkt_t *) pkt
+{
+    int width = 960;
+    int height = 540;
     
+    vpx_image_t * img = &raw;
     
-} 
+    unsigned char frame_hdr[12];
+    write_ivf_frame_header(pkt, (char*)frame_hdr);
+    
+    unsigned char * frame = (unsigned char*) malloc(1024*256);
+    frame = (unsigned char*) pkt->data.frame.buf;
+    
+    decode_frame(img, frame_hdr, frame, (char*)luma);
+    
+    free(frame);
+    
+    // make data provider from buffer
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, luma, (width * height * 3), NULL);
+    
+    // set up for CGImage creation
+    int bitsPerComponent = 8;
+    int bitsPerPixel = 8;
+    int bytesPerRow = width;
+    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmapInfo = kCGBitmapByteOrderDefault | kCGImageAlphaNone;
+    CGColorRenderingIntent renderingIntent = kCGRenderingIntentDefault;
+    CGImageRef imageRef = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpaceRef, bitmapInfo, provider, NULL, NO, renderingIntent);
+    
+    // make UIImage from CGImage
+    UIImage *newUIImage = [UIImage imageWithCGImage:imageRef];
+    
+    // display the UIImage
+    [((UIImageView*)self.view) performSelectorOnMainThread:@selector(setImage:) withObject:newUIImage waitUntilDone:YES];
+    
+}
 
 
 @end

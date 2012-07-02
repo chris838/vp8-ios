@@ -20,6 +20,8 @@
     BOOL hasSetupEncoder;
     
     int count;
+    
+    unsigned char* luma;
 }
 
 @end

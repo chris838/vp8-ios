@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		300E919B15818DAA009436B0 /* simple_encoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 300E919A15818DAA009436B0 /* simple_encoder.c */; };
+		3023626E1587D03400B2DF09 /* simple_decoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 3023626D1587D03400B2DF09 /* simple_decoder.c */; };
+		302362901589647B00B2DF09 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3023628F1589647B00B2DF09 /* CoreImage.framework */; };
 		3031E6CE1565307D002F015E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E6CD1565307D002F015E /* UIKit.framework */; };
 		3031E6D01565307D002F015E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E6CF1565307D002F015E /* Foundation.framework */; };
 		3031E6D21565307D002F015E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E6D11565307D002F015E /* CoreGraphics.framework */; };
@@ -15,8 +17,6 @@
 		3031E6DA1565307D002F015E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3031E6D91565307D002F015E /* main.m */; };
 		3031E6DE1565307D002F015E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3031E6DD1565307D002F015E /* AppDelegate.m */; };
 		3031E6E11565307D002F015E /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3031E6E01565307D002F015E /* ViewController.mm */; };
-		3031E6E41565307D002F015E /* ViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3031E6E21565307D002F015E /* ViewController_iPhone.xib */; };
-		3031E6E71565307D002F015E /* ViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3031E6E51565307D002F015E /* ViewController_iPad.xib */; };
 		3031E7341566A34F002F015E /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E7331566A34F002F015E /* AVFoundation.framework */; };
 		3031E7371566A371002F015E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E7361566A371002F015E /* CoreMedia.framework */; };
 		3031E7391566A378002F015E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3031E7381566A378002F015E /* CoreVideo.framework */; };
@@ -24,6 +24,8 @@
 
 /* Begin PBXFileReference section */
 		300E919A15818DAA009436B0 /* simple_encoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simple_encoder.c; sourceTree = "<group>"; };
+		3023626D1587D03400B2DF09 /* simple_decoder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simple_decoder.c; sourceTree = "<group>"; };
+		3023628F1589647B00B2DF09 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
 		3031E6C91565307D002F015E /* Vp8Streamer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vp8Streamer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3031E6CD1565307D002F015E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		3031E6CF1565307D002F015E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -36,8 +38,6 @@
 		3031E6DD1565307D002F015E /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		3031E6DF1565307D002F015E /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		3031E6E01565307D002F015E /* ViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewController.mm; sourceTree = "<group>"; };
-		3031E6E31565307D002F015E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPhone.xib; sourceTree = "<group>"; };
-		3031E6E61565307D002F015E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPad.xib; sourceTree = "<group>"; };
 		3031E7331566A34F002F015E /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3031E7361566A371002F015E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		3031E7381566A378002F015E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -48,6 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				302362901589647B00B2DF09 /* CoreImage.framework in Frameworks */,
 				3031E7391566A378002F015E /* CoreVideo.framework in Frameworks */,
 				3031E7371566A371002F015E /* CoreMedia.framework in Frameworks */,
 				3031E7341566A34F002F015E /* AVFoundation.framework in Frameworks */,
@@ -80,6 +81,7 @@
 		3031E6CC1565307D002F015E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3023628F1589647B00B2DF09 /* CoreImage.framework */,
 				3031E7381566A378002F015E /* CoreVideo.framework */,
 				3031E7361566A371002F015E /* CoreMedia.framework */,
 				3031E7331566A34F002F015E /* AVFoundation.framework */,
@@ -94,12 +96,11 @@
 			isa = PBXGroup;
 			children = (
 				300E919A15818DAA009436B0 /* simple_encoder.c */,
+				3023626D1587D03400B2DF09 /* simple_decoder.c */,
 				3031E6DC1565307D002F015E /* AppDelegate.h */,
 				3031E6DD1565307D002F015E /* AppDelegate.m */,
 				3031E6DF1565307D002F015E /* ViewController.h */,
 				3031E6E01565307D002F015E /* ViewController.mm */,
-				3031E6E21565307D002F015E /* ViewController_iPhone.xib */,
-				3031E6E51565307D002F015E /* ViewController_iPad.xib */,
 				3031E6D41565307D002F015E /* Supporting Files */,
 			);
 			path = Vp8Streamer;
@@ -168,8 +169,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3031E6D81565307D002F015E /* InfoPlist.strings in Resources */,
-				3031E6E41565307D002F015E /* ViewController_iPhone.xib in Resources */,
-				3031E6E71565307D002F015E /* ViewController_iPad.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,6 +183,7 @@
 				3031E6DE1565307D002F015E /* AppDelegate.m in Sources */,
 				3031E6E11565307D002F015E /* ViewController.mm in Sources */,
 				300E919B15818DAA009436B0 /* simple_encoder.c in Sources */,
+				3023626E1587D03400B2DF09 /* simple_decoder.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,22 +196,6 @@
 				3031E6D71565307D002F015E /* en */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		3031E6E21565307D002F015E /* ViewController_iPhone.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3031E6E31565307D002F015E /* en */,
-			);
-			name = ViewController_iPhone.xib;
-			sourceTree = "<group>";
-		};
-		3031E6E51565307D002F015E /* ViewController_iPad.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3031E6E61565307D002F015E /* en */,
-			);
-			name = ViewController_iPad.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
