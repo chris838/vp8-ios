@@ -13,7 +13,10 @@
 #import "simple_decoder.c"
 
 #define CAPTURE_FRAMES_PER_SECOND   15
-#define CAPTURE_QUALITY_PRESET AVCaptureSessionPresetiFrame960x540
+#define CAPTURE_QUALITY_PRESET AVCaptureSessionPreset352x288
+
+#define WIDTH 352
+#define HEIGHT 288
 
 // Don't know why this is needed, probably some frame header
 #define UNKNOWN_IMG_OFFSET 64
@@ -108,7 +111,7 @@ static vpx_image_t raw;
     CFDictionarySetValue(pixelBufferAttributes, kCVPixelBufferIOSurfacePropertiesKey, emptyValue);
     
     // Create the pixel buffer
-    CVReturn err = CVPixelBufferCreate(kCFAllocatorDefault, 960, 540,
+    CVReturn err = CVPixelBufferCreate(kCFAllocatorDefault, WIDTH, HEIGHT,
                                        kCVPixelFormatType_32BGRA,
                                        pixelBufferAttributes,
                                        pixelBuffer_ptr);
@@ -232,7 +235,7 @@ static vpx_image_t raw;
     NSString *pathToSrc = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"sample.ivf"];
     const char* pathToSrcString = [pathToSrc cStringUsingEncoding:NSASCIIStringEncoding];
     
-    luma = (unsigned char*) malloc(960*540*3);
+    luma = (unsigned char*) malloc(WIDTH*HEIGHT*3);
     
     setup_decoder( (char*) pathToSrcString );
     
@@ -265,7 +268,7 @@ didOutputSampleBuffer: (CMSampleBufferRef)sampleBuffer
     NSLog(@"Got frame");
     count++;
     
-    if (count < 200) {
+    if (count < 20000) {
     
         vpx_image_t * img = &raw;
         size_t num_luma_pixels = img->w * img->h;
@@ -274,11 +277,11 @@ didOutputSampleBuffer: (CMSampleBufferRef)sampleBuffer
         // Get access to raw pixel data
         CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer); 
         CVPixelBufferLockBaseAddress(pixelBuffer, 0);
-        unsigned char* base_address = (unsigned char*) CVPixelBufferGetBaseAddress(pixelBuffer) + UNKNOWN_IMG_OFFSET;
+        unsigned char* base_address = (unsigned char*) CVPixelBufferGetBaseAddress(pixelBuffer); // + UNKNOWN_IMG_OFFSET;
         
         // Alias to planes in source image
         unsigned char* y_plane_src = base_address;
-        unsigned char* uv_planes = base_address + num_luma_pixels + 5*img->w; // Not sure why I have to do this but it works
+        unsigned char* uv_planes = base_address + num_luma_pixels; // + 5*img->w; // Not sure why I have to do this but it works
         
         // Alias to planes in destination image
         unsigned char* y_plane_dst = img->planes[0];
@@ -312,20 +315,20 @@ didOutputSampleBuffer: (CMSampleBufferRef)sampleBuffer
 
 - (void) decodeAndDisplayFrame: (const vpx_codec_cx_pkt_t *) pkt
 {
-    int width = 960;
-    int height = 540;
+    int width = WIDTH;
+    int height = HEIGHT;
     
     vpx_image_t * img = &raw;
     
     unsigned char frame_hdr[12];
     write_ivf_frame_header(pkt, (char*)frame_hdr);
     
-    unsigned char * frame = (unsigned char*) malloc(1024*256);
-    frame = (unsigned char*) pkt->data.frame.buf;
+    //unsigned char * frame = (unsigned char*) malloc(1024*256);
+    unsigned char* frame = (unsigned char*) pkt->data.frame.buf;
     
     decode_frame(img, frame_hdr, frame, (char*)luma);
     
-    free(frame);
+    //free(frame);
     
     // make data provider from buffer
     CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, luma, (width * height * 3), NULL);
@@ -334,7 +337,7 @@ didOutputSampleBuffer: (CMSampleBufferRef)sampleBuffer
     int bitsPerComponent = 8;
     int bitsPerPixel = 8;
     int bytesPerRow = width;
-    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
+    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceGray();
     CGBitmapInfo bitmapInfo = kCGBitmapByteOrderDefault | kCGImageAlphaNone;
     CGColorRenderingIntent renderingIntent = kCGRenderingIntentDefault;
     CGImageRef imageRef = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpaceRef, bitmapInfo, provider, NULL, NO, renderingIntent);
@@ -345,6 +348,11 @@ didOutputSampleBuffer: (CMSampleBufferRef)sampleBuffer
     // display the UIImage
     [((UIImageView*)self.view) performSelectorOnMainThread:@selector(setImage:) withObject:newUIImage waitUntilDone:YES];
     
+}
+
+- (Boolean) willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    return NO;
 }
 
 
