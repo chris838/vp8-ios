@@ -318,15 +318,13 @@ didOutputSampleBuffer: (CMSampleBufferRef)sampleBuffer
     int width = WIDTH;
     int height = HEIGHT;
     
-    vpx_image_t * img = &raw;
-    
     unsigned char frame_hdr[12];
     write_ivf_frame_header(pkt, (char*)frame_hdr);
     
     //unsigned char * frame = (unsigned char*) malloc(1024*256);
     unsigned char* frame = (unsigned char*) pkt->data.frame.buf;
     
-    decode_frame(img, frame_hdr, frame, (char*)luma);
+    decode_frame(frame_hdr, frame, (char*)luma);
     
     //free(frame);
     

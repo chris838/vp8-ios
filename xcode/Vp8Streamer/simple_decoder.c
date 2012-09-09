@@ -81,7 +81,7 @@ void setup_decoder( char* infile_path )
         
 }
 
-void decode_frame(vpx_image_t *img, unsigned char * frame_hdr, unsigned char* frame, char* ret) {
+void decode_frame(unsigned char * frame_hdr, unsigned char* frame, char* ret) {
     
     // Read frame header
     //fread(frame_hdr, 1, IVF_FRAME_HDR_SZ, decoder_infile);
@@ -103,7 +103,7 @@ void decode_frame(vpx_image_t *img, unsigned char * frame_hdr, unsigned char* fr
     
     /* Write decoded data to buffer */
 
-    img = vpx_codec_get_frame(&decoder_codec, &iter);
+    vpx_image_t *img = vpx_codec_get_frame(&decoder_codec, &iter);
         
     unsigned int plane, y;
 
