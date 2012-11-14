@@ -1,1 +1,7 @@
-Readme
+Instructions:
+
+1) Make sure you have cloned using the --recursive flag so that libvpx submodule is included.
+
+2) Run the build script to build the libvpx library.
+
+3) The included Xcode project includes a quick and dirty demo of the library encoding and decoding.
