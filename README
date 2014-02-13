@@ -1,3 +1,8 @@
+Status:
+
+This project is no longer being maintained. Please see https://github.com/motrr/RemoteControlGalileo instead.
+
+
 Instructions:
 
 1) Make sure you have cloned using the --recursive flag so that libvpx submodule is included.
